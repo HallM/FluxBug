@@ -1,36 +1,43 @@
 import React from 'react';
 import {register} from '../actions/UserActions';
 
-class Register extends React.Component {
+var Register = React.createClass({
+    contextTypes: {
+        executeAction: React.PropTypes.func
+    },
+
     handleSubmit(e) {
         e.preventDefault();
         this.context.executeAction(register, {
-            email: this.refs.email,
-            password: this.refs.password,
-            confirmPassword: this.refs.confirmPassword,
-            displayName: this.refs.displayName
+            email: React.findDOMNode(this.refs.email).value,
+            password: React.findDOMNode(this.refs.password).value,
+            confirmPassword: React.findDOMNode(this.refs.confirmPassword).value,
+            displayName: React.findDOMNode(this.refs.displayName).value
         });
     },
+
     render() {
         return (
             <div>
                 <h2>Register</h2>
-                <form action="/register" method="POST" onSubmit={this.handleSubmit}>
-                    <label for="displayName">Your name: </label>
-                    <input type="text" required ref="displayName" />
+                <form className="pure-form pure-form-stacked" action="/user/register" method="POST" onSubmit={this.handleSubmit}>
+                    <label htmlFor="displayName">Your name: </label>
+                    <input type="text" name="displayName" required ref="displayName" />
 
-                    <label for="email">Email: </label>
-                    <input type="email" required ref="email" />
+                    <label htmlFor="email">Email: </label>
+                    <input type="email" name="email" required ref="email" />
 
-                    <label for="password">Password: </label>
-                    <input type="password" required ref="password" />
+                    <label htmlFor="password">Password: </label>
+                    <input type="password" name="password" required ref="password" />
 
-                    <label for="confirmPassword">Confirm Password: </label>
-                    <input type="password" required ref="confirmPassword" />
+                    <label htmlFor="confirmPassword">Confirm Password: </label>
+                    <input type="password" name="confirmPassword" required ref="confirmPassword" />
+                    
+                    <button type="submit" className="pure-button pure-button-primary">Register</button>
                 </form>
             </div>
         );
     }
-};
+});
 
 export default Register;

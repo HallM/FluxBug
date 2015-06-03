@@ -1,9 +1,6 @@
 import express from 'express';
 import models from './models/';
-import bcrypt from 'bcrypt';
-import Promise from 'bluebird';
-
-var bcryptPromise Promise.promisifyAll(bcrypt);
+import bcrypt from 'bcrypt-as-promised';
 
 var router = express.Router();
 
@@ -12,16 +9,17 @@ router.post('/register', (req, res) => {
     var confirmPassword = req.body.confirmPassword;
     
     if (password !== confirmPassword) {
-        if (req.xhr) {
+        if (req.wantsJson()) {
             res.status(400).json({success: false, message: 'Passwords do not match.'});
         } else {
             req.flash('error', 'Passwords do not match.');
-            res.redirect('/user/register');
+            res.redirect('/register');
         }
+        return;
     }
     
-    bcryptPromise.genSalt(10).then((salt) => {
-       return bcryptPromise.hash(password, salt);
+    bcrypt.genSalt(10).then((salt) => {
+       return bcrypt.hash(password, salt);
     }).then((encPassword) => {
         var newUser = {
             email: req.body.email,
@@ -30,18 +28,18 @@ router.post('/register', (req, res) => {
         };
         return models.User.create(newUser);
     }).then((user) => {
-        if (req.xhr) {
-            res.status(500).json({success: false, message: 'Failed to create user: ' + err + '.'});
+        if (req.wantsJson()) {
+            res.status(200).json({success: true, message: 'Successfully created your new account!'});
         } else {
-            req.flash('error', 'Failed to create user: ' + err + '.');
+            req.flash('success', 'Successfully created your new account!');
             res.redirect('/login');
         }
     }).catch((err) => {
-        if (req.xhr) {
+        if (req.wantsJson()) {
             res.status(500).json({success: false, message: 'Failed to create user: ' + err + '.'});
         } else {
             req.flash('error', 'Failed to create user: ' + err + '.');
-            res.redirect('/user/register');
+            res.redirect('/register');
         }
     });
 });

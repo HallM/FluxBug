@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import nconf from 'nconf';
+import locals from '../../locals';
 import Sequelize from 'sequelize';
 
 var sequelize = new Sequelize(nconf.get('DATABASE_URL'));

@@ -4,18 +4,22 @@
  * based on the URL. Once completed, the store state is dehydrated
  * and the application is rendered via React.
  */
-
 import express from 'express';
 
-import wantsJson from 'wants-json';
+import nconf from 'nconf';
+import locals from './locals';
+import async from 'async';
+import bcrypt from 'bcrypt-as-promised';
+
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
+import methodOverride from 'method-override';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import csurf from 'csurf';
-import {Strategy} as LocalStrategy from 'passport-local';
-
-import models from './models/';
+import flash from 'flash';
+import wantsJson from 'wants-json';
+import {Strategy as LocalStrategy} from 'passport-local';
 
 import path from 'path';
 import serialize from 'serialize-javascript';
@@ -28,27 +32,8 @@ const htmlComponent = React.createFactory(HtmlComponent);
 
 const debug = debugLib('fluxbug');
 
-app.plug({
-    name: 'expose-express-plugin',
-    plugContext(options) {
-        let req = options.req;
-        let res = options.res;
-        let next = options.next;
-        return {
-            plugActionContext(componentContext) {
-                actionContext.getReq = function() {
-                    return req;
-                };
-                actionContext.getRes = function() {
-                    return res;
-                };
-                actionContext.getNext = function() {
-                    return next;
-                }
-            },
-        };
-    },
-});
+var models = require('./db/models/');
+models.sequelize.sync({force: false});
 
 const server = express();
 server.set('state namespace', 'App');
@@ -58,13 +43,15 @@ server.use(cookieParser());
 server.use(bodyParser.urlencoded({extended: false}));
 server.use(methodOverride());
 server.use(session({
-    secret: 'keyboard cat',
+    secret: nconf.get('SESSION_SECRET'),
     resave: false,
     saveUninitialized: true
 }));
-server.use(csurf({cookie: false}));
+//server.use(csurf({cookie: false}));
+server.use(flash());
 server.use(passport.initialize());
 server.use(passport.session());
+server.use(wantsJson());
 
 server.use((err, req, res, next) => {
    if (err.code !== 'EBADCSRFTOKEN') {
@@ -76,22 +63,22 @@ server.use((err, req, res, next) => {
 passport.use(new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password'
-}, (email, password, done) {
+}, (email, password, done) => {
     models.User.find({where: {email: email}}).then((user) => {
         if (!user) {
             return done(null, false);
         }
-        bcrypt.compare(password, user.password, (err, res) => {
-            if (err) {
+        bcrypt.compare(password, user.password)
+            .then((res) => {
+                if (res) {
+                    return done(null, user);
+                } else {
+                    return done(null, false)
+                }
+            })
+            .catch((err) => {
                 return done(err);
-            }
-            
-            if (res) {
-                return done(null, user);
-            } else {
-                return done(null, false)
-            }
-        });
+            });
     })
 }));
 
@@ -117,16 +104,28 @@ server.use('/', SessionRoutes);
 server.use('/user', UserRoutes);
 
 server.use((req, res, next) => {
-    let context = app.createContext({
-        req: req,
-        res: res,
-        next: next
-    });
+    let context = app.createContext({});
 
-    debug('Executing navigate action');
-    context.getActionContext().executeAction(navigateAction, {
-        url: req.url
-    }, (err) => {
+    var actionContext = context.getActionContext();
+    async.series([
+        (cb) => {
+            if (req.user) {
+               actionContext.dispatch('USER_LOGGED_IN', req.user);
+            }
+            cb();
+        },
+
+        async.apply(actionContext.executeAction, navigateAction, {url: req.url}),
+
+        (cb) => {
+            let messages = res.locals.flash;
+            if (messages && messages.length > 0) {
+               actionContext.dispatch('ADD_NOTIFICATIONS', messages);
+               req.session.flash = [];
+            }
+            cb();
+        }
+    ], (err) => {
         if (err) {
             if (err.statusCode && err.statusCode === 404) {
                 next();
@@ -153,8 +152,8 @@ server.use((req, res, next) => {
     });
 });
 
-const port = process.env.PORT || 3000;
-server.listen(port);
+const port = nconf.get('PORT');
+server.listen(port, nconf.get('IP'));
 console.log('Listening on port ' + port);
 
 export default server;

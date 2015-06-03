@@ -1,35 +1,53 @@
 import request from 'superagent';
+import {navigateAction} from 'fluxible-router';
 
 var login = function(actionContext, payload, done) {
     request
         .post('/login')
+        .type('form')
         .send(payload)
         .set('Accept', 'application/json')
         .end((err, res) => {
            if (err) {
-               // TODO: how should I show the errors?
-           } else if (!res) {
-               // TODO: how should I show the errors?
+               actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                   type: 'error',
+                   message: 'Failed to login: ' + err
+               }]);
            } else {
-               // TODO: setting up session?
-               executeAction(navigateAction, {url: '/'});
+               if (res.body.success) {
+                   actionContext.dispatch('USER_LOGGED_IN', res.body.user);
+                   actionContext.executeAction(navigateAction, {url: '/'});
+               } else {
+                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                       type: 'error',
+                       message: res.body.message
+                   }]);
+               }
            }
         });
 };
 
 var logout = function(actionContext, payload, done) {
     request
-        .post('/logout')
+        .get('/logout')
         .send(payload)
         .set('Accept', 'application/json')
         .end((err, res) => {
            if (err) {
-               // TODO: how should I show the errors?
-           } else if (!res) {
-               // TODO: how should I show the errors?
+               actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                   type: 'error',
+                   message: 'Failed to log out: ' + err
+               }]);
            } else {
-               // TODO: remove session
-               executeAction(navigateAction, {url: '/'});
+               if (res.body.success) {
+                   actionContext.dispatch('USER_LOGGED_OUT', {});
+                   actionContext.executeAction(navigateAction, {url: '/'});
+               } else {
+                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                       type: 'error',
+                       message: res.body.message
+                   }]);
+               }
            }
         });
 };
