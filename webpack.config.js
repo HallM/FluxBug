@@ -1,6 +1,7 @@
 module.exports = {
     resolve: {
-        extensions: ['', '.js']
+        extensions: ['', '.js'],
+        packageAlias: 'browser'
     },
     entry: './client.js',
     output: {

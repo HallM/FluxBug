@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Nav from './Nav';
+import SessionNav from './SessionNav';
 import Home from './Home';
 import About from './About';
 import ApplicationStore from '../stores/ApplicationStore';
@@ -17,6 +18,7 @@ var Application = React.createClass({
         return (
             <div>
                 <Nav selected={this.props.currentPageName} links={this.props.pages} />
+                <SessionNav selected={this.props.currentPageName} />
                 <Handler />
             </div>
         );
