@@ -30,4 +30,3 @@ module.exports = function (grunt) {
     // tasks
     grunt.registerTask('default', ['clean', 'concurrent:dev']);
 };
-

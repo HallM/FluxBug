@@ -1,1 +1,1 @@
-web: node -e "require('grunt').tasks(['default']);"
+web: node start.js
