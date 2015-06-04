@@ -153,7 +153,7 @@ server.use((req, res, next) => {
 });
 
 const port = nconf.get('PORT');
-server.listen(port, nconf.get('IP'));
+server.listen(port);
 console.log('Listening on port ' + port);
 
 export default server;
