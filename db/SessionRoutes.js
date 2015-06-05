@@ -12,7 +12,7 @@ router.post('/login', function(req, res, next) {
                 res.status(500).json({success: false, message: 'Failed to login.'});
                 return;
             } else if (!user) {
-                res.status(400).json({success: false, message: 'Failed to login.'});
+                res.status(400).json({success: false, message: 'Incorrect username and password.'});
                 return;
             }
         } else {
@@ -20,12 +20,16 @@ router.post('/login', function(req, res, next) {
                 req.flash('error', 'Failed to login.');
                 res.redirect('/login');
                 return;
+            } else if (!user) {
+                req.flash('error', 'Incorrect username and password.');
+                res.redirect('/login');
+                return;
             }
         }
         req.logIn(user, (err) => {
             if (req.wantsJson()) {
                 if (err) {
-                    res.status(401).json({success: false, message: 'Failed to login.'});
+                    res.status(401).json({success: false, message: 'Incorrect username and password.'});
                     return;
                 } else {
                     res.status(200).json({success: true, message: 'Successfully logged in.', user: {
@@ -36,7 +40,7 @@ router.post('/login', function(req, res, next) {
                 }
             } else {
                 if (err) {
-                    req.flash('error', 'Failed to login.');
+                    req.flash('error', 'Incorrect username and password.');
                     res.redirect('/login');
                     return;
                 } else {

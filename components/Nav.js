@@ -10,16 +10,16 @@ class Nav extends React.Component {
         const links = this.props.links;
         const user = this.props.user;
 
-        const linkHTML = Object.keys(links).map(function (name) {
-            var className = '';
-            var link = links[name];
+        const linkHTML = Object.keys(links).map((name) => {
+            let className = 'pure-menu-item';
+            let link = links[name];
             
             if ((user && !link.showAuthed) || (!user && !link.showUnauthed)) {
                 return '';
             }
 
             if (selected === name) {
-                className = 'pure-menu-selected';
+                className = className + ' pure-menu-selected';
             }
 
             return (
@@ -29,10 +29,17 @@ class Nav extends React.Component {
             );
         });
 
+        const menuStyle = {
+            margin: 0,
+            padding: 0
+        };
+
         return (
-            <ul className="pure-menu pure-menu-open pure-menu-horizontal">
-                {linkHTML}
-            </ul>
+            <div className="pure-u-2-3">
+                <ul className="pure-menu pure-menu-horizontal" style={menuStyle}>
+                    {linkHTML}
+                </ul>
+            </div>
         );
     }
 }

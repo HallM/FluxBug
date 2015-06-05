@@ -9,13 +9,14 @@ var register = function(actionContext, payload, done) {
         .set('Accept', 'application/json')
         .end((err, res) => {
            if (err) {
+               let errorMessage = res.body.message ? res.body.message : err;
                actionContext.dispatch('ADD_NOTIFICATIONS', [{
                    type: 'error',
-                   message: 'Failed to register: ' + err
+                   message: errorMessage
                }]);
            } else {
                if (res.body.success) {
-                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                   actionContext.dispatch('ADD_FLASH_MESSAGE', [{
                        type: 'success',
                        message: res.body.message
                    }]);
