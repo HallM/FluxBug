@@ -9,9 +9,10 @@ var login = function(actionContext, payload, done) {
         .set('Accept', 'application/json')
         .end((err, res) => {
            if (err) {
+               let errorMessage = res.body.message ? res.body.message : err;
                actionContext.dispatch('ADD_NOTIFICATIONS', [{
                    type: 'error',
-                   message: 'Failed to login: ' + err
+                   message: errorMessage
                }]);
            } else {
                if (res.body.success) {
@@ -34,9 +35,10 @@ var logout = function(actionContext, payload, done) {
         .set('Accept', 'application/json')
         .end((err, res) => {
            if (err) {
+               let errorMessage = res.body.message ? res.body.message : err;
                actionContext.dispatch('ADD_NOTIFICATIONS', [{
                    type: 'error',
-                   message: 'Failed to log out: ' + err
+                   message: errorMessage
                }]);
            } else {
                if (res.body.success) {

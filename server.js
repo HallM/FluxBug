@@ -38,6 +38,7 @@ models.sequelize.sync({force: false});
 const server = express();
 server.set('state namespace', 'App');
 server.use('/public', express.static(path.join(__dirname, '/build')));
+server.use('/assets', express.static(path.join(__dirname, '/assets')));
 
 server.use(cookieParser());
 server.use(bodyParser.urlencoded({extended: false}));
