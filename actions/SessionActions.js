@@ -10,7 +10,7 @@ var login = function(actionContext, payload, done) {
         .end((err, res) => {
            if (err) {
                let errorMessage = res.body.message ? res.body.message : err;
-               actionContext.dispatch('ADD_NOTIFICATIONS', [{
+               actionContext.dispatch('SET_NOTIFICATIONS', [{
                    type: 'error',
                    message: errorMessage
                }]);
@@ -19,7 +19,7 @@ var login = function(actionContext, payload, done) {
                    actionContext.dispatch('USER_LOGGED_IN', res.body.user);
                    actionContext.executeAction(navigateAction, {url: '/'});
                } else {
-                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                   actionContext.dispatch('SET_NOTIFICATIONS', [{
                        type: 'error',
                        message: res.body.message
                    }]);
@@ -36,7 +36,7 @@ var logout = function(actionContext, payload, done) {
         .end((err, res) => {
            if (err) {
                let errorMessage = res.body.message ? res.body.message : err;
-               actionContext.dispatch('ADD_NOTIFICATIONS', [{
+               actionContext.dispatch('SET_NOTIFICATIONS', [{
                    type: 'error',
                    message: errorMessage
                }]);
@@ -45,7 +45,7 @@ var logout = function(actionContext, payload, done) {
                    actionContext.dispatch('USER_LOGGED_OUT', {});
                    actionContext.executeAction(navigateAction, {url: '/'});
                } else {
-                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                   actionContext.dispatch('SET_NOTIFICATIONS', [{
                        type: 'error',
                        message: res.body.message
                    }]);

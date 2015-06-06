@@ -10,7 +10,7 @@ var register = function(actionContext, payload, done) {
         .end((err, res) => {
            if (err) {
                let errorMessage = res.body.message ? res.body.message : err;
-               actionContext.dispatch('ADD_NOTIFICATIONS', [{
+               actionContext.dispatch('SET_NOTIFICATIONS', [{
                    type: 'error',
                    message: errorMessage
                }]);
@@ -22,7 +22,7 @@ var register = function(actionContext, payload, done) {
                    }]);
                    actionContext.executeAction(navigateAction, {url: '/login'});
                } else {
-                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
+                   actionContext.dispatch('SET_NOTIFICATIONS', [{
                        type: 'error',
                        message: res.body.message
                    }]);
