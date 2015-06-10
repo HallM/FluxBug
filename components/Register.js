@@ -20,7 +20,7 @@ var Register = React.createClass({
         return (
             <div>
                 <h2>Register</h2>
-                <form className="pure-form pure-form-stacked" action="/user/register" method="POST" onSubmit={this.handleSubmit}>
+                <form className="pure-form pure-form-stacked" action="/register" method="POST" onSubmit={this.handleSubmit}>
                     <label htmlFor="displayName">Your name: </label>
                     <input type="text" name="displayName" required ref="displayName" />
 

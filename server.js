@@ -21,6 +21,10 @@ import flash from 'flash';
 import wantsJson from 'wants-json';
 import {Strategy as LocalStrategy} from 'passport-local';
 
+import reqBodyPlugin from './fluxible-plugin-reqbody';
+import passportPlugin from './fluxible-plugin-passport';
+import responsePlugin from './fluxible-plugin-responses';
+
 import path from 'path';
 import serialize from 'serialize-javascript';
 import {navigateAction} from 'fluxible-router';
@@ -50,8 +54,6 @@ server.use(session({
 }));
 //server.use(csurf({cookie: false}));
 server.use(flash());
-server.use(passport.initialize());
-server.use(passport.session());
 server.use(wantsJson());
 
 server.use((err, req, res, next) => {
@@ -61,51 +63,52 @@ server.use((err, req, res, next) => {
    res.status(403).send('Invalid rest sent.');
 });
 
-passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password'
-}, (email, password, done) => {
-    models.User.find({where: {email: email}}).then((user) => {
-        if (!user) {
-            return done(null, false);
-        }
-        bcrypt.compare(password, user.password)
-            .then((res) => {
-                if (res) {
-                    return done(null, user);
-                } else {
-                    return done(null, false)
+app.plug(reqBodyPlugin());
+app.plug(responsePlugin());
+
+app.plug(passportPlugin(server, {
+    serializeUser: (user, done) => {
+        done(null, {
+            email: user.email,
+            displayName: user.displayName,
+            title: user.title,
+            bio: user.bio
+        });
+    },
+
+    deserializeUser: (user, done) => {
+        done(null, user);
+    },
+
+    strategy: new LocalStrategy({
+            usernameField: 'email',
+            passwordField: 'password'
+        }, (email, password, done) => {
+            models.User.find({where: {email: email}}).then((user) => {
+                if (!user) {
+                    return done(null, false);
                 }
+                bcrypt.compare(password, user.password)
+                    .then((res) => {
+                        if (res) {
+                            return done(null, user);
+                        } else {
+                            return done(null, false)
+                        }
+                    })
+                    .catch((err) => {
+                        return done(err);
+                    });
             })
-            .catch((err) => {
-                return done(err);
-            });
-    })
+        })
 }));
 
-passport.serializeUser((user, done) => {
-    done(null, {
-        email: user.email,
-        displayName: user.displayName,
-        title: user.title,
-        bio: user.bio
-    });
-});
-
-passport.deserializeUser((user, done) => {
-    done(null, user);
-});
-
-// routes should be included after the middleware set up to have the middleware initialized before the routes are
-import SessionRoutes from './db/SessionRoutes';
-import UserRoutes from './db/UserRoutes';
-
-// set the imported routes before the flux, otherwise flux will suck in all the routes.
-server.use('/', SessionRoutes);
-server.use('/user', UserRoutes);
-
 server.use((req, res, next) => {
-    let context = app.createContext({});
+    let context = app.createContext({
+        req: req,
+        res: res,
+        next: next
+    });
 
     var actionContext = context.getActionContext();
     async.series([
@@ -116,13 +119,15 @@ server.use((req, res, next) => {
             cb();
         },
 
-        async.apply(actionContext.executeAction, navigateAction, {url: req.url}),
-
+        async.apply(actionContext.executeAction, navigateAction, {url: req.url, method: req.method}),
+        
         (cb) => {
-            let messages = res.locals.flash;
-            if (messages && messages.length > 0) {
-               actionContext.dispatch('ADD_NOTIFICATIONS', messages);
-               req.session.flash = [];
+            if (!res.headersSent) {
+                let messages = res.locals.flash;
+                if (messages && messages.length > 0) {
+                   actionContext.dispatch('ADD_NOTIFICATIONS', messages);
+                   req.session.flash = [];
+                }
             }
             cb();
         }
@@ -136,20 +141,22 @@ server.use((req, res, next) => {
             return;
         }
 
-        debug('Exposing context state');
-        const exposed = 'window.App=' + serialize(app.dehydrate(context)) + ';';
-
-        debug('Rendering Application component into html');
-        const html = React.renderToStaticMarkup(htmlComponent({
-            context: context.getComponentContext(),
-            state: exposed,
-            markup: React.renderToString(context.createElement())
-        }));
-
-        debug('Sending markup');
-        res.type('html');
-        res.write('<!DOCTYPE html>' + html);
-        res.end();
+        if (!res.headersSent) {
+            debug('Exposing context state');
+            const exposed = 'window.App=' + serialize(app.dehydrate(context)) + ';';
+    
+            debug('Rendering Application component into html');
+            const html = React.renderToStaticMarkup(htmlComponent({
+                context: context.getComponentContext(),
+                state: exposed,
+                markup: React.renderToString(context.createElement())
+            }));
+    
+            debug('Sending markup');
+            res.type('html');
+            res.write('<!DOCTYPE html>' + html);
+            res.end();
+        }
     });
 });
 

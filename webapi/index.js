@@ -1,74 +1,52 @@
-import bcrypt from 'bcrypt';
-import Promise from 'bluebird';
-var bcryptPromise = Promise.promisifyAll(bcrypt);
+import models from '../db/models/';
+import bcrypt from 'bcrypt-as-promised';
 
 export default {
-    register(actionContext, email, password, displayName) {
-        return bcryptPromise.genSalt(10).then((salt) => {
-           return bcryptPromise.hash(password, salt);
+    register(actionContext, payload, done) {
+        bcrypt.genSalt(10).then((salt) => {
+            return bcrypt.hash(actionContext.body.password, salt);
         }).then((encPassword) => {
             var newUser = {
-                email: req.body.email,
+                email: actionContext.body.email,
                 password: encPassword,
-                displayName: req.body.displayName
+                displayName: actionContext.body.displayName
             };
             return models.User.create(newUser);
+        }).then((user) => {
+            actionContext.respondOk('Successfully created your new account!', '/login');
+            done();
+        }).catch((err) => {
+            actionContext.respondError(500, 'Failed to create user: ' + err + '.', '/register');
+            done();
         });
     },
-    login(actionContext, email, password) {
-        var req = actionContext.getReq;
-        var res = actionContext.getRes;
-        var next = actionContext.getNext;
 
-        passport.authenticate('local', (err, user, info) => {
-            if (req.xhr) {
-                if (err) {
-                    res.status(500).json({success: false, message: 'Failed to login.'});
-                    return;
-                } else if (!user) {
-                    res.status(400).json({success: false, message: 'Failed to login.'});
-                    return;
-                }
-            } else {
-                if (err || !user) {
-                    req.flash('error', 'Failed to login.');
-                    res.redirect('/login');
-                    return;
-                }
+    login(actionContext, payload, done) {
+        actionContext.authenticate('local', (err, user, info) => {
+            if (err) {
+                actionContext.respondError(500, 'Failed to login ' + err, '/login');
+                return done();
+            } else if (!user) {
+                actionContext.respondError(401, 'Incorrect username and password.', '/login');
+                return done();
             }
-            req.logIn(user, (err) => {
-                if (req.xhr) {
-                    if (err) {
-                        res.status(401).json({success: false, message: 'Failed to login.'});
-                        return;
-                    } else {
-                        res.status(200).json({success: true, message: 'Successfully logged in.'});
-                        return;
-                    }
+            
+            actionContext.logIn(user, (err) => {
+                if (err) {
+                    actionContext.respondError(401, 'Incorrect username and password.', '/login');
                 } else {
-                    if (err) {
-                        req.flash('error', 'Failed to login.');
-                        res.redirect('/login');
-                        return;
-                    } else {
-                        req.flash('success', 'Successfully logged in.');
-                        res.redirect('/');
-                        return;
-                    }
+                    actionContext.respondOk('Successfully logged in.', '/', {
+                        email: user.email,
+                        displayName: user.displayName
+                    });
                 }
+                return done();
             });
-        })(req, res, next);
+        });
     },
-    logout(actionContext) {
-        var req = actionContext.getReq;
-        var res = actionContext.getRes;
 
-        req.logout();
-        if (req.xhr) {
-            res.status(200).send({success: true, message: 'You have been logged out.'});
-        } else {
-            req.flash('success', 'You have been logged out.');
-            res.redirect('/');
-        }
+    logout(actionContext, payload, done) {
+        actionContext.logout();
+        done();
     }
 };
