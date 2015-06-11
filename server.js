@@ -22,7 +22,7 @@ import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import bodyParser from 'body-parser';
 import session from 'express-session';
-import csurf from 'csurf';
+import lusca from 'lusca';
 import flash from 'flash';
 import wantsJson from 'wants-json';
 import {Strategy as LocalStrategy} from 'passport-local';
@@ -58,7 +58,16 @@ server.use(session({
     resave: false,
     saveUninitialized: true
 }));
-//server.use(csurf({cookie: false}));
+
+server.use(lusca({
+    csrf: true,
+    csp: false,
+    xframe: 'SAMEORIGIN',
+    p3p: false,
+    hsts: false,
+    xssProtection: true
+}));
+
 server.use(flash());
 server.use(wantsJson());
 
@@ -117,6 +126,8 @@ server.use((req, res, next) => {
     });
 
     var actionContext = context.getActionContext();
+    actionContext.dispatch('SETCSRF_TOKEN', res.locals._csrf);
+
     async.series([
         (cb) => {
             if (req.user) {

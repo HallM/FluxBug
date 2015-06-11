@@ -1,4 +1,5 @@
 import passport from 'passport';
+import ApplicationStore from '../stores/ApplicationStore';
 
 export default function() {
     return {
@@ -13,7 +14,9 @@ export default function() {
                 plugActionContext: function (actionContext) {
                     actionContext.respondOk = function (message, redirectUrl, data) {
                         if (req.wantsJson()) {
-                            let ret = {success: true};
+                            let csrf = this.getStore(ApplicationStore).getCsrf();
+                            
+                            let ret = {success: true, csrf: csrf};
                             if (data) {
                                 ret.data = data;
                             }
@@ -31,7 +34,9 @@ export default function() {
                     };
                     actionContext.respondError = function (errorCode, message, redirectUrl) {
                         if (req.wantsJson()) {
-                            let ret = {success: false};
+                            let csrf = this.getStore(ApplicationStore).getCsrf();
+
+                            let ret = {success: false, csrf: csrf};
                             if (message) {
                                 ret.message = message;
                             }
