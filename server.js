@@ -7,7 +7,13 @@
 import express from 'express';
 
 import nconf from 'nconf';
-import locals from './locals';
+nconf.argv().env();
+nconf.defaults({
+    PORT: 3000,
+    IP: '0.0.0.0',
+    SESSION_SECRET: 'keyboard! cat 123'
+});
+
 import async from 'async';
 import bcrypt from 'bcrypt-as-promised';
 
