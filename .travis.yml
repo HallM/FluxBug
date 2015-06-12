@@ -1,3 +1,8 @@
 language: node_js
 node_js:
   - "0.12"
+addons:
+  code_climate:
+    repo_token: dc0a825421316c8dbe712403b598cc4593045ef05414090bf34f0c5a50f13343
+after_script:
+  - codeclimate < coverage/lcov.info
