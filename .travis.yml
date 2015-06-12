@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - "0.12"
+addons:
+  code_climate:
+    repo_token: dc0a825421316c8dbe712403b598cc4593045ef05414090bf34f0c5a50f13343
+after_script:
+  - codeclimate < coverage/lcov.info
+deploy:
+  provider: heroku
+  api_key:
+    secure: Ln9FOrx4ev2ZKldxvp9fujU7eGJXquKo42XjsNc0NC5dxR//ZHYjKHV4CZORoc2qdL6ndy+iDIxevVTsUOaVbEeXzbFYQHI8/1g/Qb8sl/mQ959lWZnHaBUL+G0eH3kd0wz6qkkX32lxTY6BqFzCY0LW56UrN+U9LOcV2+eU6wuEM94VM16x2TSaNpIDFtCdbpwS4VBPCAId0+ob04RGJ1TMMv7YPKELDPACS+ZGPdKJEtefj+IEflJ/oDOP6ulWL5PJr+YC7kBSxUK9runMciuctp7A9AJMqR3DRDmsqA9gP9vUFp8eqr3GTjuIe1rt4MQKap0Shighzf9QIaBXNjcwDkTQsoFkPy3eKVD1dO4jX9sUF6abdR2vCE1L/yZpZGd8CxAH+Vw+V8GAOmBvR0ZpJfgW8UjwOA2daRM0wAUMWC7MbiRYl51jkovhIxkEAcPqEJJqJuTBNArgtjAMSnWmDOAJNzuBLAMhFoh3xNeTcHQSVkKtX7a9Y20IZ8Z0MZm6fdVXkwnUQZ6WfgvEQheSrZ4qtxEewRW15KwWcblEs6azzOAUS8GmwfVTl5Kj1WPI997JkSVrzDeZ/zmnL3EtbQD3o5iXlbvLHLEM/msq0TDezZHXxh3xXN1DCYCrdrX4QApL6Y2nd2Tr3lTa7QkAKBKq52V09H/o6nteO+4=
+  app: fluxbug
+  on: master

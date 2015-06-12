@@ -28,11 +28,13 @@ class NotificationStore extends BaseStore {
     }
     dehydrate() {
         return {
-            messages: this.messages
+            messages: this.messages,
+            flashMessages: this.flashMessages
         };
     }
     rehydrate(state) {
         this.messages = state.messages;
+        this.flashMessages = state.flashMessages;
     }
 }
 

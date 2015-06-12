@@ -30,7 +30,7 @@ export default {
                 actionContext.respondError(401, 'Incorrect username and password.', '/login');
                 return done();
             }
-            
+
             actionContext.logIn(user, (err) => {
                 if (err) {
                     actionContext.respondError(401, 'Incorrect username and password.', '/login');
