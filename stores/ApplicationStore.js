@@ -9,6 +9,7 @@ class ApplicationStore extends BaseStore {
         this.currentPage = null;
         this.pages = routesConfig;
         this.pageTitle = '';
+        this.csrf = '';
     }
     handlePageTitle(currentRoute) {
         var self = this;
@@ -20,6 +21,9 @@ class ApplicationStore extends BaseStore {
             }
         });
     }
+    setCsrfToken(token) {
+        this.csrf = token;
+    }
     getCurrentPageName() {
         return this.currentPageName;
     }
@@ -29,12 +33,16 @@ class ApplicationStore extends BaseStore {
     getPages() {
         return this.pages;
     }
+    getCsrf() {
+        return this.csrf;
+    }
     dehydrate() {
         return {
             currentPageName: this.currentPageName,
             currentPage: this.currentPage,
             pages: this.pages,
-            pageTitle: this.pageTitle
+            pageTitle: this.pageTitle,
+            csrf: this.csrf
         };
     }
     rehydrate(state) {
@@ -42,12 +50,14 @@ class ApplicationStore extends BaseStore {
         this.currentPage = state.currentPage;
         this.pages = state.pages;
         this.pageTitle = state.pageTitle;
+        this.csrf = state.csrf;
     }
 }
 
 ApplicationStore.storeName = 'ApplicationStore';
 ApplicationStore.handlers = {
-    'NAVIGATE_SUCCESS': 'handlePageTitle'
+    'NAVIGATE_SUCCESS': 'handlePageTitle',
+    'SETCSRF_TOKEN': 'setCsrfToken'
 };
 
 export default ApplicationStore;

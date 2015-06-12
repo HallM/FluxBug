@@ -1,57 +1,11 @@
-import request from 'superagent';
-import {navigateAction} from 'fluxible-router';
+import {userapi} from '../webapi/';
 
 var login = function(actionContext, payload, done) {
-    request
-        .post('/login')
-        .type('form')
-        .send(payload)
-        .set('Accept', 'application/json')
-        .end((err, res) => {
-           if (err) {
-               let errorMessage = res.body.message ? res.body.message : err;
-               actionContext.dispatch('ADD_NOTIFICATIONS', [{
-                   type: 'error',
-                   message: errorMessage
-               }]);
-           } else {
-               if (res.body.success) {
-                   actionContext.dispatch('USER_LOGGED_IN', res.body.user);
-                   actionContext.executeAction(navigateAction, {url: '/'});
-               } else {
-                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
-                       type: 'error',
-                       message: res.body.message
-                   }]);
-               }
-           }
-        });
+    userapi.login(actionContext, payload, done);
 };
 
 var logout = function(actionContext, payload, done) {
-    request
-        .get('/logout')
-        .send(payload)
-        .set('Accept', 'application/json')
-        .end((err, res) => {
-           if (err) {
-               let errorMessage = res.body.message ? res.body.message : err;
-               actionContext.dispatch('ADD_NOTIFICATIONS', [{
-                   type: 'error',
-                   message: errorMessage
-               }]);
-           } else {
-               if (res.body.success) {
-                   actionContext.dispatch('USER_LOGGED_OUT', {});
-                   actionContext.executeAction(navigateAction, {url: '/'});
-               } else {
-                   actionContext.dispatch('ADD_NOTIFICATIONS', [{
-                       type: 'error',
-                       message: res.body.message
-                   }]);
-               }
-           }
-        });
+    userapi.logout(actionContext, payload, done);
 };
 
 export {login, logout};

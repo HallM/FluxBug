@@ -10,6 +10,10 @@ class NotificationStore extends BaseStore {
         this.messages = this.messages.concat(newMessages);
         this.emitChange();
     }
+    handleSetMessages(newMessages) {
+        this.messages = newMessages;
+        this.emitChange();
+    }
     handleAddFlashMessage(newMessages) {
         this.flashMessages = this.flashMessages.concat(newMessages);
         this.emitChange();
@@ -35,6 +39,7 @@ class NotificationStore extends BaseStore {
 NotificationStore.storeName = 'NotificationStore';
 NotificationStore.handlers = {
     'ADD_NOTIFICATIONS': 'handleAddMessages',
+    'SET_NOTIFICATIONS': 'handleSetMessages',
     'ADD_FLASH_MESSAGE': 'handleAddFlashMessage',
     'NAVIGATE_SUCCESS': 'postNavigation'
 };
