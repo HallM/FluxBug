@@ -8,7 +8,7 @@ import SessionStore from './stores/SessionStore';
 
 // create new fluxible instance
 const app = new Fluxible({
-    component: Application
+  component: Application
 });
 
 // register stores

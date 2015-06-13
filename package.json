@@ -15,7 +15,7 @@
     "dev": "grunt",
     "lint": "eslint ./*.js ./**/*.js",
     "test": "jest",
-    "postinstall": "webpack -p --config webpack.production.js"
+    "postinstall": "webpack -p"
   },
   "jest": {
     "collectCoverage": true,

@@ -5,25 +5,25 @@ import NotificationStore from '../stores/NotificationStore';
 import Notification from './Notification'
 
 class NotificationList extends React.Component {
-    render() {
-        const messages = this.props.messages;
+  render() {
+    const messages = this.props.messages;
 
-        const messageHTML = messages.map((message) => {
-            return (
-                <Notification msgType={message.type} msgContent={message.message} />
-            );
-        });
+    const messageHTML = messages.map((message) => {
+      return (
+        <Notification msgType={message.type} msgContent={message.message} />
+      );
+    });
 
-        return (
-            <div>
-                {messageHTML}
-            </div>
-        );
-    }
+    return (
+      <div>
+        {messageHTML}
+      </div>
+    );
+  }
 }
 
 export default connectToStores(NotificationList, [NotificationStore], function (stores, props) {
-    return {
-        messages: stores.NotificationStore.getCurrentMessages()
-    };
+  return {
+    messages: stores.NotificationStore.getCurrentMessages()
+  };
 });

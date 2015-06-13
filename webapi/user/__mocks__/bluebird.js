@@ -1,10 +1,6 @@
 'use strict';
 
-/*jest.autoMockOff();
-module.exports = require.requireActual('bluebird');
-jest.autoMockOn();*/
-
-var Promise = function(pfn) {
+var SyncPromise = function(pfn) {
   var _this = this;
   _this.isResolved = false;
   _this.args = [];
@@ -17,18 +13,18 @@ var Promise = function(pfn) {
     _this.isResolved = false;
   });
 };
-Promise.prototype.then = function (cb) {
+SyncPromise.prototype.then = function (cb) {
   if (this.isResolved) {
     var ret = cb.apply(null, this.args);
     return ret ? ret : this;
   }
   return this;
 };
-Promise.prototype.catch = function (cb) {
+SyncPromise.prototype.catch = function (cb) {
   if (!this.isResolved) {
     cb.apply(null, this.args);
   }
   return this;
 };
 
-module.exports = Promise;
+module.exports = SyncPromise;

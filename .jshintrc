@@ -1,0 +1,5 @@
+{
+  "esnext": true,
+  "maxcomplexity": 5,
+  "unused": "vars"
+}

@@ -9,15 +9,14 @@ import express from 'express';
 import nconf from 'nconf';
 nconf.argv().env();
 nconf.defaults({
-    PORT: 3000,
-    IP: '0.0.0.0',
-    SESSION_SECRET: 'keyboard! cat 123'
+  PORT: 3000,
+  IP: '0.0.0.0',
+  SESSION_SECRET: 'keyboard! cat 123'
 });
 
 import async from 'async';
 import bcrypt from 'bcrypt-as-promised';
 
-import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import bodyParser from 'body-parser';
@@ -54,127 +53,127 @@ server.use(cookieParser());
 server.use(bodyParser.urlencoded({extended: false}));
 server.use(methodOverride());
 server.use(session({
-    secret: nconf.get('SESSION_SECRET'),
-    resave: false,
-    saveUninitialized: true
+  secret: nconf.get('SESSION_SECRET'),
+  resave: false,
+  saveUninitialized: true
 }));
 
 server.use(lusca({
-    csrf: true,
-    csp: false,
-    xframe: 'SAMEORIGIN',
-    p3p: false,
-    hsts: false,
-    xssProtection: true
+  csrf: true,
+  csp: false,
+  xframe: 'SAMEORIGIN',
+  p3p: false,
+  hsts: false,
+  xssProtection: true
 }));
 
 server.use(flash());
 server.use(wantsJson());
 
 server.use((err, req, res, next) => {
-   if (err.code !== 'EBADCSRFTOKEN') {
-       return next(err);
-   }
-   res.status(403).send('Invalid rest sent.');
+ if (err.code !== 'EBADCSRFTOKEN') {
+   return next(err);
+ }
+ res.status(403).send('Invalid rest sent.');
 });
 
 app.plug(reqBodyPlugin());
 app.plug(responsePlugin());
 
 app.plug(passportPlugin(server, {
-    serializeUser: (user, done) => {
-        done(null, {
-            email: user.email,
-            displayName: user.displayName,
-            title: user.title,
-            bio: user.bio
-        });
-    },
+  serializeUser: (user, done) => {
+    done(null, {
+      email: user.email,
+      displayName: user.displayName,
+      title: user.title,
+      bio: user.bio
+    });
+  },
 
-    deserializeUser: (user, done) => {
-        done(null, user);
-    },
+  deserializeUser: (user, done) => {
+    done(null, user);
+  },
 
-    strategy: new LocalStrategy({
-            usernameField: 'email',
-            passwordField: 'password'
-        }, (email, password, done) => {
-            models.User.find({where: {email: email}}).then((user) => {
-                if (!user) {
-                    return done(null, false);
-                }
-                bcrypt.compare(password, user.password)
-                    .then((res) => {
-                        if (res) {
-                            return done(null, user);
-                        } else {
-                            return done(null, false)
-                        }
-                    })
-                    .catch((err) => {
-                        return done(err);
-                    });
-            })
+  strategy: new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  }, (email, password, done) => {
+    models.User.find({where: {email: email}}).then((user) => {
+      if (!user) {
+        return done(null, false);
+      }
+      bcrypt.compare(password, user.password)
+        .then((res) => {
+          if (res) {
+            return done(null, user);
+          } else {
+            return done(null, false);
+          }
         })
+        .catch((err) => {
+          return done(err);
+        });
+    });
+  })
 }));
 
 server.use((req, res, next) => {
-    let context = app.createContext({
-        req: req,
-        res: res,
-        next: next
-    });
+  let context = app.createContext({
+    req: req,
+    res: res,
+    next: next
+  });
 
-    var actionContext = context.getActionContext();
-    actionContext.dispatch('SETCSRF_TOKEN', res.locals._csrf);
+  var actionContext = context.getActionContext();
+  actionContext.dispatch('SETCSRF_TOKEN', res.locals._csrf);
 
-    async.series([
-        (cb) => {
-            if (req.user) {
-               actionContext.dispatch('USER_LOGGED_IN', req.user);
-            }
-            cb();
-        },
+  async.series([
+    (cb) => {
+      if (req.user) {
+        actionContext.dispatch('USER_LOGGED_IN', req.user);
+      }
+      cb();
+    },
 
-        async.apply(actionContext.executeAction, navigateAction, {url: req.url, method: req.method}),
-        
-        (cb) => {
-            if (!res.headersSent) {
-                let messages = res.locals.flash;
-                if (messages && messages.length > 0) {
-                   actionContext.dispatch('ADD_NOTIFICATIONS', messages);
-                   req.session.flash = [];
-                }
-            }
-            cb();
+    async.apply(actionContext.executeAction, navigateAction, {url: req.url, method: req.method}),
+
+    (cb) => {
+      if (!res.headersSent) {
+        let messages = res.locals.flash;
+        if (messages && messages.length > 0) {
+          actionContext.dispatch('ADD_NOTIFICATIONS', messages);
+          req.session.flash = [];
         }
-    ], (err) => {
-        if (err) {
-            if (err.statusCode && err.statusCode === 404) {
-                next();
-            } else {
-                next(err);
-            }
-            return;
-        }
+      }
+      cb();
+    }
+  ], (err) => {
+    if (err) {
+      if (err.statusCode && err.statusCode === 404) {
+        next();
+      } else {
+        next(err);
+      }
+      return;
+    }
 
-        if (!res.headersSent) {
-            debug('Exposing context state');
-            const exposed = 'window.App=' + serialize(app.dehydrate(context)) + ';';
-    
-            debug('Rendering Application component into html');
-            const html = React.renderToStaticMarkup(htmlComponent({
-                context: context.getComponentContext(),
-                state: exposed,
-                markup: React.renderToString(context.createElement())
-            }));
-    
-            debug('Sending markup');
-            res.type('html');
-            res.write('<!DOCTYPE html>' + html);
-            res.end();
-        }
-    });
+    if (!res.headersSent) {
+      debug('Exposing context state');
+      const exposed = 'window.App=' + serialize(app.dehydrate(context)) + ';';
+
+      debug('Rendering Application component into html');
+      const html = React.renderToStaticMarkup(htmlComponent({
+        context: context.getComponentContext(),
+        state: exposed,
+        markup: React.renderToString(context.createElement())
+      }));
+
+      debug('Sending markup');
+      res.type('html');
+      res.write('<!DOCTYPE html>' + html);
+      res.end();
+    }
+  });
 });
 
 const port = nconf.get('PORT');

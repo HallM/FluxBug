@@ -5,51 +5,51 @@ import SessionStore from '../stores/SessionStore';
 import { NavLink } from 'fluxible-router';
 
 class Nav extends React.Component {
-    render() {
-        const selected = this.props.selected;
-        const links = this.props.links;
-        const user = this.props.user;
+  render() {
+    const selected = this.props.selected;
+    const links = this.props.links;
+    const user = this.props.user;
 
-        const linkHTML = Object.keys(links).map((name) => {
-            let className = 'pure-menu-item';
-            let link = links[name];
-            
-            if ((user && !link.showAuthed) || (!user && !link.showUnauthed)) {
-                return '';
-            }
+    const linkHTML = Object.keys(links).map((name) => {
+      let className = 'pure-menu-item';
+      let link = links[name];
 
-            if (selected === name) {
-                className = className + ' pure-menu-selected';
-            }
+      if ((user && !link.showAuthed) || (!user && !link.showUnauthed)) {
+        return '';
+      }
 
-            return (
-                <li className={className} key={link.path}>
-                    <NavLink routeName={link.page} activeStyle={{backgroundColor: '#eee'}}>{link.title}</NavLink>
-                </li>
-            );
-        });
+      if (selected === name) {
+        className = className + ' pure-menu-selected';
+      }
 
-        const menuStyle = {
-            margin: 0,
-            padding: 0
-        };
+      return (
+        <li className={className} key={link.path}>
+          <NavLink routeName={link.page} activeStyle={{backgroundColor: '#eee'}}>{link.title}</NavLink>
+        </li>
+      );
+    });
 
-        return (
-            <div className="pure-u-2-3">
-                <ul className="pure-menu pure-menu-horizontal" style={menuStyle}>
-                    {linkHTML}
-                </ul>
-            </div>
-        );
-    }
+    const menuStyle = {
+      margin: 0,
+      padding: 0
+    };
+
+    return (
+      <div className="pure-u-2-3">
+        <ul className="pure-menu pure-menu-horizontal" style={menuStyle}>
+          {linkHTML}
+        </ul>
+      </div>
+    );
+  }
 }
 
 Nav.defaultProps = {
-    selected: 'home'
+  selected: 'home'
 };
 
 export default connectToStores(Nav, [SessionStore], function (stores, props) {
-    return {
-        user: stores.SessionStore.getLoggedinUser()
-    };
+  return {
+    user: stores.SessionStore.getLoggedinUser()
+  };
 });
