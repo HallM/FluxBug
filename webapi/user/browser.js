@@ -1,113 +1,78 @@
-import request from 'superagent';
+import axios from 'axios';
 import {navigateAction} from 'fluxible-router';
-import ApplicationStore from '../../stores/ApplicationStore';
 
 export default {
   register(actionContext, payload, done) {
-    request
-      .post('/register')
-      .type('form')
-      .send({
-        _csrf: actionContext.getStore(ApplicationStore).getCsrf(),
+    axios.post('/register', {
         email: payload.email,
         password: payload.password,
         displayName: payload.displayName
-      })
-      .set('Accept', 'application/json')
-      .end((err, res) => {
-        if (res.body.csrf) {
-          actionContext.dispatch('SETCSRF_TOKEN', res.body.csrf);
-        }
-
-        if (err) {
-          let errorMessage = res.body.message ? res.body.message : err;
-          actionContext.dispatch('SET_NOTIFICATIONS', [{
-            type: 'error',
-            message: errorMessage
-          }]);
-        } else {
-          if (res.body.success) {
-            actionContext.dispatch('ADD_FLASH_MESSAGE', [{
-              type: 'success',
-              message: res.body.message
-            }]);
-            actionContext.executeAction(navigateAction, {url: '/login'});
-          } else {
-            actionContext.dispatch('SET_NOTIFICATIONS', [{
-              type: 'error',
-              message: res.body.message
-            }]);
-          }
-        }
-        done();
-      });
+    }).then((res) => {
+      actionContext.dispatch('ADD_FLASH_MESSAGE', [{
+        type: 'success',
+        message: res.data.message
+      }]);
+      actionContext.executeAction(navigateAction, {url: '/login'});
+      done();
+    }).catch((res) => {
+      if (res instanceof Error) {
+        actionContext.dispatch('SET_NOTIFICATIONS', [{
+          type: 'error',
+          message: 'Failed to register. Please try again later.'
+        }]);
+      } else {
+        actionContext.dispatch('SET_NOTIFICATIONS', [{
+          type: 'error',
+          message: res.data.message
+        }]);
+      }
+      done();
+    });
   },
 
   login(actionContext, payload, done) {
-    request
-      .post('/login')
-      .type('form')
-      .send({
-        _csrf: actionContext.getStore(ApplicationStore).getCsrf(),
+    axios.post('/login', {
         email: payload.email,
         password: payload.password
-      })
-      .set('Accept', 'application/json')
-      .end((err, res) => {
-        if (res.body.csrf) {
-          actionContext.dispatch('SETCSRF_TOKEN', res.body.csrf);
-        }
-
-        if (err) {
-          let errorMessage = res.body.message ? res.body.message : err;
-          actionContext.dispatch('SET_NOTIFICATIONS', [{
-            type: 'error',
-            message: errorMessage
-          }]);
-        } else {
-          if (res.body.success) {
-            actionContext.dispatch('USER_LOGGED_IN', res.body.data);
-            actionContext.executeAction(navigateAction, {url: '/'});
-          } else {
-            actionContext.dispatch('SET_NOTIFICATIONS', [{
-              type: 'error',
-              message: res.body.message
-            }]);
-          }
-        }
-      });
+    }).then((res) => {
+      actionContext.dispatch('USER_LOGGED_IN', res.data.data);
+      actionContext.executeAction(navigateAction, {url: '/'});
+      done();
+    }).catch((res) => {
+      if (res instanceof Error) {
+        actionContext.dispatch('SET_NOTIFICATIONS', [{
+          type: 'error',
+          message: 'Failed to login. Please try again later.'
+        }]);
+        console.log(res);
+      } else {
+        actionContext.dispatch('SET_NOTIFICATIONS', [{
+          type: 'error',
+          message: res.data.message
+        }]);
+      }
+      done();
+    });
   },
 
   logout(actionContext, payload, done) {
-    request
-      .post('/logout')
-      .type('form')
-      .send({
-        _csrf: actionContext.getStore(ApplicationStore).getCsrf()
-      })
-      .set('Accept', 'application/json')
-      .end((err, res) => {
-        if (res.body.csrf) {
-          actionContext.dispatch('SETCSRF_TOKEN', res.body.csrf);
-        }
-
-        if (err) {
-          let errorMessage = res.body.message ? res.body.message : err;
-          actionContext.dispatch('SET_NOTIFICATIONS', [{
-            type: 'error',
-            message: errorMessage
-          }]);
-        } else {
-          if (res.body.success) {
-            actionContext.dispatch('USER_LOGGED_OUT', {});
-            actionContext.executeAction(navigateAction, {url: '/'});
-          } else {
-            actionContext.dispatch('SET_NOTIFICATIONS', [{
-              type: 'error',
-              message: res.body.message
-            }]);
-          }
-        }
-      });
+    axios.post('/logout', {}).then((res) => {
+      actionContext.dispatch('USER_LOGGED_OUT', {});
+      actionContext.executeAction(navigateAction, {url: '/'});
+      done();
+    }).catch((res) => {
+      if (res instanceof Error) {
+        actionContext.dispatch('SET_NOTIFICATIONS', [{
+          type: 'error',
+          message: 'Failed to logout. Please try again later.'
+        }]);
+      } else {
+        actionContext.dispatch('SET_NOTIFICATIONS', [{
+          type: 'error',
+          message: res.data.message
+        }]);
+      }
+      done();
+    });
   }
 };

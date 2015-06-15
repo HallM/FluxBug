@@ -1,5 +1,5 @@
 import passport from 'passport';
-import ApplicationStore from '../stores/ApplicationStore';
+import ApplicationStore from '../../stores/ApplicationStore';
 
 export default function() {
   return {
