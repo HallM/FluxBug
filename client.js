@@ -3,6 +3,8 @@
 import React from 'react';
 import debug from 'debug';
 import app from './app';
+import ApplicationStore from './stores/ApplicationStore';
+import axios from 'axios';
 
 const debugClient = debug('fluxbug');
 const dehydratedState = window.App; // Sent from the server
@@ -22,6 +24,28 @@ app.rehydrate(dehydratedState, function (err, context) {
   }
   window.context = context;
   const mountNode = document.getElementById('app');
+
+  axios.interceptors.request.use((config) => {
+    config.data._csrf = context.getActionContext().getStore(ApplicationStore).getCsrf();
+    let data = config.data;
+    var str = [];
+    for(var p in data) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(data[p]));
+    }
+    config.data = str.join("&");
+    return config;
+  }, function (error) {
+    return Promise.reject(error);
+  });
+
+  axios.interceptors.response.use((response) => {
+    if (response && response.data && response.data.csrf) {
+      context.getActionContext().dispatch('SETCSRF_TOKEN', response.data.csrf);
+    }
+    return response;
+  }, function (error) {
+    return Promise.reject(error);
+  });
 
   debugClient('React Rendering');
   React.render(context.createElement(), mountNode, function () {

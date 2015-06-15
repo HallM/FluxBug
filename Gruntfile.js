@@ -16,7 +16,7 @@ module.exports = function (grunt) {
       app: {
         script: './start.js',
         options: {
-          ignore: ['build/**'],
+          ignore: ['build/**', 'node_modules/**'],
           ext: 'js'
         }
       }
